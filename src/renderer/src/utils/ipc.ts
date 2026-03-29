@@ -95,6 +95,10 @@ export async function mihomoGroupDelay(group: string, url?: string): Promise<Con
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('mihomoGroupDelay', group, url))
 }
 
+export async function mihomoRulesDisable(rules: Record<string, boolean>): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('mihomoRulesDisable', rules))
+}
+
 export async function patchMihomoConfig(patch: Partial<MihomoConfig>): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('patchMihomoConfig', patch))
 }
@@ -117,6 +121,28 @@ export async function getAppConfig(force = false): Promise<AppConfig> {
 
 export async function patchAppConfig(patch: Partial<AppConfig>): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('patchAppConfig', patch))
+}
+
+export async function updateProxyGroupState(
+  profileId: string,
+  state: {
+    openState?: Record<string, boolean>
+    searchState?: Record<string, string>
+  }
+): Promise<void> {
+  const patch: Record<string, unknown> = {}
+  if (state.openState !== undefined) {
+    patch['openState!'] = state.openState
+  }
+  if (state.searchState !== undefined) {
+    patch['searchState!'] = state.searchState
+  }
+
+  return patchAppConfig({
+    proxyGroupsState: {
+      [profileId]: patch
+    }
+  } as unknown as Partial<AppConfig>)
 }
 
 export async function getControledMihomoConfig(force = false): Promise<Partial<MihomoConfig>> {
@@ -588,7 +614,9 @@ export async function registerShortcut(
   )
 }
 
-export async function copyEnv(type: 'bash' | 'cmd' | 'powershell' | 'nushell'): Promise<void> {
+export async function copyEnv(
+  type: 'bash' | 'fish' | 'cmd' | 'powershell' | 'nushell'
+): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('copyEnv', type))
 }
 

@@ -6,12 +6,18 @@ import { FaMapPin } from 'react-icons/fa6'
 
 interface Props {
   mutateProxies: () => void
-  onProxyDelay: (proxy: string, url?: string) => Promise<ControllerProxiesDelay>
+  onProxyDelay: (proxy: string, group?: ControllerMixedGroup) => Promise<ControllerProxiesDelay>
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
   proxy: ControllerProxiesDetail | ControllerGroupDetail
   group: ControllerMixedGroup
   onSelect: (group: string, proxy: string) => void
   selected: boolean
+}
+
+const isGroup = (
+  proxy: ControllerProxiesDetail | ControllerGroupDetail
+): proxy is ControllerGroupDetail => {
+  return 'now' in proxy && typeof (proxy as ControllerGroupDetail).now === 'string'
 }
 
 const ProxyItem: React.FC<Props> = (props) => {
@@ -42,7 +48,7 @@ const ProxyItem: React.FC<Props> = (props) => {
 
   const onDelay = (): void => {
     setLoading(true)
-    onProxyDelay(proxy.name, group.testUrl).finally(() => {
+    onProxyDelay(proxy.name, group).finally(() => {
       mutateProxies()
       setLoading(false)
     })
@@ -74,6 +80,14 @@ const ProxyItem: React.FC<Props> = (props) => {
                 </div>
                 <div className="text-[12px] text-foreground-500 leading-none mt-0.5">
                   <span>{proxy.type}</span>
+                  {isGroup(proxy) && proxy.now && (
+                    <>
+                      <span className="mx-1">→</span>
+                      <span className="flag-emoji" title={proxy.now}>
+                        {proxy.now}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-center gap-0.5 shrink-0">
@@ -112,9 +126,16 @@ const ProxyItem: React.FC<Props> = (props) => {
                   {proxy.name}
                 </div>
                 {proxyDisplayLayout === 'single' && (
-                  <div className="inline ml-2 text-foreground-500" title={proxy.type}>
-                    {proxy.type}
-                  </div>
+                  <>
+                    <div className="inline ml-2 text-foreground-500" title={proxy.type}>
+                      {proxy.type}
+                    </div>
+                    {isGroup(proxy) && proxy.now && (
+                      <div className="inline ml-2 text-foreground-500 flag-emoji" title={proxy.now}>
+                        → {proxy.now}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="flex items-center gap-0.5 shrink-0">

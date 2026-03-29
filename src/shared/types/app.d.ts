@@ -33,7 +33,7 @@ interface AppConfig {
   proxyDisplayLayout: 'hidden' | 'single' | 'double'
   groupDisplayLayout: 'hidden' | 'single' | 'double'
   profileDisplayDate?: 'expire' | 'update'
-  envType?: ('bash' | 'cmd' | 'powershell' | 'nushell')[]
+  envType?: ('bash' | 'fish' | 'cmd' | 'powershell' | 'nushell')[]
   proxyCols: 'auto' | '1' | '2' | '3' | '4'
   connectionDirection: 'asc' | 'desc'
   connectionOrderBy: 'time' | 'upload' | 'download' | 'uploadSpeed' | 'downloadSpeed' | 'process'
@@ -73,6 +73,7 @@ interface AppConfig {
   originDNS?: string
   useWindowFrame: boolean
   proxyInTray: boolean
+  trayProxyDelayLayout?: 'same-line' | 'new-line'
   siderOrder: string[]
   siderWidth: number
   appTheme: AppTheme
@@ -85,6 +86,7 @@ interface AppConfig {
   userAgent?: string
   delayTestConcurrency?: number
   delayTestUrl?: string
+  delayTestUrlScope?: 'group' | 'global'
   delayTestTimeout?: number
   encryptedPassword?: number[]
   controlDns?: boolean
@@ -114,6 +116,12 @@ interface AppConfig {
   displayAppName?: boolean
   disableGPU: boolean
   disableAnimation?: boolean
+  proxyGroupsState?: {
+    [profileId: string]: {
+      openState?: Record<string, boolean>
+      searchState?: Record<string, string>
+    }
+  }
 }
 
 interface ProfileConfig {

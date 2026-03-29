@@ -7,6 +7,7 @@ export const defaultConfig: AppConfig = {
   appTheme: 'system',
   useWindowFrame: false,
   proxyInTray: true,
+  trayProxyDelayLayout: 'new-line',
   useCustomTrayMenu: false,
   maxLogDays: 7,
   proxyCols: 'auto',
@@ -45,7 +46,8 @@ export const defaultConfig: AppConfig = {
   disableGPU: process.platform === 'win32' && parseInt(os.release().split('.')[2], 10) <= 20000,
   proxyDisplayLayout: 'double',
   groupDisplayLayout: 'double',
-  autoLightweightMode: 'core'
+  autoLightweightMode: 'core',
+  delayTestUrlScope: 'group'
 }
 
 export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
@@ -103,7 +105,9 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
     'use-system-hosts': false,
     'default-nameserver': ['tls://223.5.5.5'],
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
+    'nameserver-policy': {},
     'proxy-server-nameserver': [],
+    'proxy-server-nameserver-policy': {},
     'direct-nameserver': []
   },
   sniffer: {

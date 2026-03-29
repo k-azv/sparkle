@@ -148,6 +148,7 @@ export const buildContextMenu = async (): Promise<Menu> => {
     envType = process.platform === 'win32' ? ['powershell'] : ['bash'],
     autoCloseConnection,
     proxyInTray = true,
+    trayProxyDelayLayout = 'new-line',
     // useCustomTrayMenu = false,
     triggerSysProxyShortcut = '',
     showFloatingWindowShortcut = '',
@@ -170,10 +171,11 @@ export const buildContextMenu = async (): Promise<Menu> => {
           : -1
         const displayDelay = formatDelayText(delay)
 
+        const isNewLine = trayProxyDelayLayout === 'new-line'
         return {
           id: group.name,
-          label: group.name,
-          sublabel: displayDelay,
+          label: isNewLine ? group.name : `${group.name}   ${displayDelay}`,
+          sublabel: isNewLine ? displayDelay : '',
           type: 'submenu',
           submenu: [
             {
@@ -197,10 +199,12 @@ export const buildContextMenu = async (): Promise<Menu> => {
                   ? proxy.history[proxy.history.length - 1].delay
                   : -1
                 const proxyDisplayDelay = formatDelayText(proxyDelay)
+
+                const isNewLine = trayProxyDelayLayout === 'new-line'
                 return {
                   id: proxy.name,
-                  label: proxy.name,
-                  sublabel: proxyDisplayDelay,
+                  label: isNewLine ? proxy.name : `${proxy.name}   ${proxyDisplayDelay}`,
+                  sublabel: isNewLine ? proxyDisplayDelay : '',
                   type: 'radio' as const,
                   checked: proxy.name === group.now,
                   click: async (): Promise<void> => {
@@ -368,7 +372,6 @@ export const buildContextMenu = async (): Promise<Menu> => {
           click: async (): Promise<void> => {
             if (item.id === current) return
             await changeCurrentProfile(item.id)
-            mainWindow?.webContents.send('profileConfigUpdated')
             ipcMain.emit('updateTrayMenu')
           }
         }
@@ -600,7 +603,9 @@ ipcMain.on('customTray:close', () => {
   hideCustomTray()
 })
 
-export async function copyEnv(type: 'bash' | 'cmd' | 'powershell' | 'nushell'): Promise<void> {
+export async function copyEnv(
+  type: 'bash' | 'fish' | 'cmd' | 'powershell' | 'nushell'
+): Promise<void> {
   const { 'mixed-port': mixedPort = 7890 } = await getControledMihomoConfig()
   const { sysProxy } = await getAppConfig()
   const { host, bypass = [] } = sysProxy
@@ -609,6 +614,12 @@ export async function copyEnv(type: 'bash' | 'cmd' | 'powershell' | 'nushell'): 
     case 'bash': {
       clipboard.writeText(
         `export https_proxy=http://${host || '127.0.0.1'}:${mixedPort} http_proxy=http://${host || '127.0.0.1'}:${mixedPort} all_proxy=http://${host || '127.0.0.1'}:${mixedPort} no_proxy=${bypassStr}`
+      )
+      break
+    }
+    case 'fish': {
+      clipboard.writeText(
+        `set -xg http_proxy "http://${host || '127.0.0.1'}:${mixedPort}" && set -xg https_proxy "http://${host || '127.0.0.1'}:${mixedPort}" && set -xg no_proxy "${bypass.join(',')}"`
       )
       break
     }

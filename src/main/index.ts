@@ -113,9 +113,7 @@ if (
   }
 }
 
-if (process.platform === 'win32' && is.dev) {
-  patchControledMihomoConfig({ tun: { enable: false } })
-}
+const shouldDisableTunInDev = process.platform === 'win32' && is.dev
 
 const gotTheLock = app.requestSingleInstanceLock()
 
@@ -199,12 +197,12 @@ function showQuitConfirmDialog(): Promise<boolean> {
     const delay = showWindow()
     setTimeout(() => {
       mainWindow?.webContents.send('show-quit-confirm')
-      
+
       const handleQuitConfirm = (_event: Electron.IpcMainEvent, confirmed: boolean): void => {
         clearTimeout(cleanupTimeoutId)
         resolve(confirmed)
       }
-      
+
       ipcMain.once('quit-confirm-result', handleQuitConfirm)
 
       const cleanupTimeoutId = setTimeout(() => {
@@ -311,9 +309,13 @@ app.whenReady().then(async () => {
   electronApp.setAppUserModelId('sparkle.app')
   try {
     await initPromise
+    if (shouldDisableTunInDev) {
+      await patchControledMihomoConfig({ tun: { enable: false } })
+    }
   } catch (e) {
     dialog.showErrorBox(t('common.errors.appCrashed'), `${e}`)
     app.quit()
+    return
   }
 
   // Default open or close DevTools by F12 in development
@@ -400,7 +402,6 @@ async function handleDeepLink(url: string): Promise<void> {
             name: profileName ?? undefined,
             url: profileUrl
           })
-          mainWindow?.webContents.send('profileConfigUpdated')
           new Notification({ title: '订阅导入成功' }).show()
         }
       } catch (e) {
@@ -469,12 +470,12 @@ async function showProfileInstallConfirm(url: string, name?: string | null): Pro
         url,
         name: extractedName || name
       })
-      
+
       const handleConfirm = (_event: Electron.IpcMainEvent, confirmed: boolean): void => {
         clearTimeout(cleanupTimeoutId)
         resolve(confirmed)
       }
-      
+
       ipcMain.once('profile-install-confirm-result', handleConfirm)
 
       const cleanupTimeoutId = setTimeout(() => {
@@ -528,12 +529,12 @@ async function showOverrideInstallConfirm(url: string, name?: string | null): Pr
         url,
         name: finalName
       })
-      
+
       const handleConfirm = (_event: Electron.IpcMainEvent, confirmed: boolean): void => {
         clearTimeout(cleanupTimeoutId)
         resolve(confirmed)
       }
-      
+
       ipcMain.once('override-install-confirm-result', handleConfirm)
 
       const cleanupTimeoutId = setTimeout(() => {
